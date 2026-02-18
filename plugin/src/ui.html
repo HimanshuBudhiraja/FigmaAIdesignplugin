@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      color: #111827;
+      background: #fff;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    .header-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .header-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .icon-btn {
+      padding: 4px 10px;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { background: #F9FAFB; border-color: #D1D5DB; color: #374151; }
+    .icon-btn.active { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
+
+    /* ── Panels ── */
+    #mainPanel { padding: 14px 16px 16px; }
+    #historyPanel { padding: 14px 16px 16px; display: none; }
+
+    /* ── Fields ── */
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #E5E7EB;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      color: #111827;
+      line-height: 1.45;
+    }
+    textarea:focus { border-color: #6366F1; box-shadow: 0 0 0 3px #EEF2FF; }
+    textarea#prompt { height: 76px; }
+    textarea#refinePrompt { height: 60px; }
+
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #E5E7EB;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+      color: #111827;
+      transition: border-color 0.15s;
+    }
+    select:focus { border-color: #6366F1; box-shadow: 0 0 0 3px #EEF2FF; }
+
+    .row { display: flex; gap: 10px; }
+    .row .field { flex: 1; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%;
+      padding: 11px;
+      background: #4F46E5;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 2px;
+    }
+    .btn-primary:hover { background: #4338CA; }
+    .btn-primary:disabled { background: #C7D2FE; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 10px;
+      background: #fff;
+      color: #374151;
+      border: 1px solid #E5E7EB;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 6px;
+    }
+    .btn-secondary:hover { background: #F9FAFB; border-color: #D1D5DB; }
+    .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Status ── */
+    .status {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      display: none;
+      line-height: 1.4;
+    }
+    .status.loading { display: flex; align-items: center; gap: 8px; background: #EEF2FF; color: #3730A3; }
+    .status.success { display: block; background: #F0FDF4; color: #166534; }
+    .status.error   { display: block; background: #FFF1F2; color: #9F1239; }
+
+    .spinner {
+      flex-shrink: 0;
+      width: 13px;
+      height: 13px;
+      border: 2px solid #A5B4FC;
+      border-top-color: #4F46E5;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .token-count {
+      margin-left: auto;
+      font-size: 11px;
+      color: #818CF8;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Section divider ── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #F3F4F6;
+    }
+
+    /* ── Refine section ── */
+    #refineSection { display: none; }
+
+    /* ── Examples ── */
+    .examples { margin-top: 12px; }
+    .examples label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 7px;
+    }
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip {
+      padding: 4px 10px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 20px;
+      font-size: 11px;
+      color: #6B7280;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .chip:hover { background: #EEF2FF; border-color: #A5B4FC; color: #4338CA; }
+
+    /* ── Design system badge ── */
+    .ds-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+
+    /* ── History panel ── */
+    .history-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: #9CA3AF;
+      font-size: 13px;
+    }
+    .history-item {
+      padding: 11px 12px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.12s;
+      background: #fff;
+    }
+    .history-item:hover { border-color: #A5B4FC; background: #FAFAFE; }
+    .history-item-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+    .history-name { font-size: 13px; font-weight: 600; color: #111827; }
+    .history-meta { display: flex; align-items: center; gap: 6px; }
+    .history-time { font-size: 11px; color: #9CA3AF; }
+    .history-prompt { font-size: 12px; color: #6B7280; line-height: 1.4; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-actions { display: flex; gap: 6px; }
+    .history-rerender {
+      padding: 4px 10px;
+      background: #EEF2FF;
+      border: none;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4338CA;
+      cursor: pointer;
+    }
+    .history-rerender:hover { background: #E0E7FF; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">AI Design Generator</div>
+    <div class="header-actions">
+      <button class="icon-btn" id="historyBtn">History</button>
+    </div>
+  </div>
+
+  <!-- ── Main Panel ── -->
+  <div id="mainPanel">
+
+    <div class="field">
+      <label>Describe your design</label>
+      <textarea id="prompt" placeholder="e.g. A login page with email, password, forgot password link, and social login buttons"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Design System</label>
+      <select id="designSystem">
+        <option value="material3">Material Design 3</option>
+        <option value="ios">iOS / Apple HIG</option>
+        <option value="tailwind">Tailwind / shadcn</option>
+        <option value="minimal">Minimal Clean</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Type</label>
+        <select id="designType">
+          <option value="page">Full Page</option>
+          <option value="component">Component</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Canvas Width</label>
+        <select id="canvasWidth">
+          <option value="1440">1440px — Desktop</option>
+          <option value="1920">1920px — Wide</option>
+          <option value="768">768px — Tablet</option>
+          <option value="375">375px — Mobile</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="generateBtn">Generate Design</button>
+
+    <div id="status" class="status"></div>
+
+    <!-- Refine section — shown after first generation -->
+    <div id="refineSection">
+      <div class="section-divider">Refine Design</div>
+      <div class="field">
+        <label>Modification instruction</label>
+        <textarea id="refinePrompt" placeholder="e.g. Make the button green, add a footer section, increase font sizes"></textarea>
+      </div>
+      <button class="btn-secondary" id="refineBtn">Refine Design</button>
+    </div>
+
+    <!-- Example chips -->
+    <div class="examples">
+      <label>Try an example</label>
+      <div class="chips-wrap">
+        <span class="chip" data-prompt="A Material Design primary button that says 'Get Started'" data-system="material3">Button</span>
+        <span class="chip" data-prompt="A login card with email, password, forgot password link, and sign-in button" data-system="tailwind">Login Card</span>
+        <span class="chip" data-prompt="A hero section with a bold headline, subtitle, and two CTA buttons side by side" data-system="minimal">Hero Section</span>
+        <span class="chip" data-prompt="A SaaS landing page with navbar, hero, 3-column features grid, pricing section, and footer" data-system="tailwind">Landing Page</span>
+        <span class="chip" data-prompt="An admin dashboard with sidebar navigation, top bar with search, 4 stat cards, and a data table" data-system="material3">Dashboard</span>
+        <span class="chip" data-prompt="An iOS settings screen with grouped list rows for notifications, privacy, appearance, and account" data-system="ios">iOS Settings</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── History Panel ── -->
+  <div id="historyPanel">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <span style="font-size:13px; font-weight:700; color:#111827;">Recent Designs</span>
+      <button class="icon-btn" id="clearHistoryBtn">Clear All</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <script>
+    const SERVER_URL = 'http://localhost:3001';
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    let currentDesign = null;
+    let currentPrompt = '';
+    let isGenerating = false;
+    let showingHistory = false;
+
+    // ── Elements ───────────────────────────────────────────────────────────────
+    const promptEl      = document.getElementById('prompt');
+    const refineEl      = document.getElementById('refinePrompt');
+    const generateBtn   = document.getElementById('generateBtn');
+    const refineBtn     = document.getElementById('refineBtn');
+    const statusEl      = document.getElementById('status');
+    const designTypeEl  = document.getElementById('designType');
+    const canvasWidthEl = document.getElementById('canvasWidth');
+    const designSysEl   = document.getElementById('designSystem');
+    const refineSection = document.getElementById('refineSection');
+    const historyBtn    = document.getElementById('historyBtn');
+    const mainPanel     = document.getElementById('mainPanel');
+    const historyPanel  = document.getElementById('historyPanel');
+    const historyList   = document.getElementById('historyList');
+    const clearHistBtn  = document.getElementById('clearHistoryBtn');
+
+    // ── History toggle ─────────────────────────────────────────────────────────
+    historyBtn.addEventListener('click', () => {
+      showingHistory = !showingHistory;
+      if (showingHistory) {
+        mainPanel.style.display = 'none';
+        historyPanel.style.display = 'block';
+        historyBtn.classList.add('active');
+        historyBtn.textContent = '← Back';
+        loadHistory();
+      } else {
+        mainPanel.style.display = 'block';
+        historyPanel.style.display = 'none';
+        historyBtn.classList.remove('active');
+        historyBtn.textContent = 'History';
+      }
+    });
+
+    // ── Example chips ──────────────────────────────────────────────────────────
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        promptEl.value = chip.getAttribute('data-prompt');
+        const sys = chip.getAttribute('data-system');
+        if (sys) designSysEl.value = sys;
+        promptEl.focus();
+      });
+    });
+
+    // ── Ctrl/Cmd+Enter to generate ─────────────────────────────────────────────
+    promptEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generateBtn.click();
+    });
+    refineEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) refineBtn.click();
+    });
+
+    // ── Generate ───────────────────────────────────────────────────────────────
+    generateBtn.addEventListener('click', async () => {
+      const prompt = promptEl.value.trim();
+      if (!prompt) { showStatus('Please enter a design description.', 'error'); return; }
+      if (isGenerating) return;
+
+      currentPrompt = prompt;
+      await runStreaming('/api/generate-stream', {
+        prompt,
+        designType: designTypeEl.value,
+        canvasWidth: parseInt(canvasWidthEl.value, 10),
+        designSystem: designSysEl.value,
+      }, 'Generating');
+    });
+
+    // ── Refine ─────────────────────────────────────────────────────────────────
+    refineBtn.addEventListener('click', async () => {
+      const instruction = refineEl.value.trim();
+      if (!instruction) { showStatus('Please enter a modification instruction.', 'error'); return; }
+      if (!currentDesign) { showStatus('No design to refine. Generate one first.', 'error'); return; }
+      if (isGenerating) return;
+
+      await runStreaming('/api/refine-stream', {
+        instruction,
+        currentDesign,
+        canvasWidth: parseInt(canvasWidthEl.value, 10),
+        designSystem: designSysEl.value,
+      }, 'Refining');
+    });
+
+    // ── Streaming helper ───────────────────────────────────────────────────────
+    async function runStreaming(endpoint, body, label) {
+      isGenerating = true;
+      setGeneratingState(true);
+      showLoadingStatus(`${label} design...`, 0);
+
+      try {
+        const response = await fetch(`${SERVER_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || `Server error (${response.status})`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let tokenCount = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            let event;
+            try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+            if (event.type === 'progress') {
+              tokenCount = event.tokens;
+              showLoadingStatus(`${label} design...`, tokenCount);
+            } else if (event.type === 'complete') {
+              currentDesign = event.design;
+              showStatus(`Design ready! Rendering on canvas...`, 'success');
+              parent.postMessage({ pluginMessage: { type: 'render-design', design: event.design } }, '*');
+
+              // Save to history
+              if (body.prompt || currentPrompt) {
+                parent.postMessage({
+                  pluginMessage: {
+                    type: 'save-to-history',
+                    entry: {
+                      id: String(Date.now()),
+                      prompt: body.prompt || currentPrompt,
+                      designName: event.design.name || 'Untitled Design',
+                      designSystem: body.designSystem || designSysEl.value,
+                      timestamp: Date.now(),
+                      design: event.design,
+                    }
+                  }
+                }, '*');
+              }
+
+              // Show refine section after first successful generation
+              refineSection.style.display = 'block';
+            } else if (event.type === 'error') {
+              throw new Error(event.error);
+            }
+          }
+        }
+      } catch (err) {
+        let msg = err.message || 'Unknown error';
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ERR_CONNECTION_REFUSED')) {
+          msg = 'Cannot reach server. Make sure the proxy server is running on localhost:3001.';
+        }
+        showStatus(msg, 'error');
+      } finally {
+        isGenerating = false;
+        setGeneratingState(false);
+      }
+    }
+
+    function setGeneratingState(active) {
+      generateBtn.disabled = active;
+      refineBtn.disabled = active;
+    }
+
+    function showLoadingStatus(text, tokens) {
+      statusEl.className = 'status loading';
+      statusEl.innerHTML = `<div class="spinner"></div><span>${text}</span>${tokens > 0 ? `<span class="token-count">${tokens} tokens</span>` : ''}`;
+    }
+
+    function showStatus(html, type) {
+      statusEl.innerHTML = html;
+      statusEl.className = 'status ' + type;
+    }
+
+    // ── Plugin messages (render complete/error) ────────────────────────────────
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'render-complete') {
+        showStatus(`Design rendered! ${msg.nodeCount || ''} nodes created.`, 'success');
+      } else if (msg.type === 'render-error') {
+        showStatus('Render error: ' + msg.error, 'error');
+      } else if (msg.type === 'history-loaded') {
+        renderHistoryList(msg.entries || []);
+      }
+    };
+
+    // ── History ────────────────────────────────────────────────────────────────
+    function loadHistory() {
+      historyList.innerHTML = '<div style="color:#9CA3AF;font-size:12px;padding:8px 0">Loading...</div>';
+      parent.postMessage({ pluginMessage: { type: 'load-history' } }, '*');
+    }
+
+    function renderHistoryList(entries) {
+      if (!entries.length) {
+        historyList.innerHTML = '<div class="history-empty">No designs yet.<br>Generate your first design to see it here.</div>';
+        return;
+      }
+
+      historyList.innerHTML = entries.map((e, i) => `
+        <div class="history-item" data-index="${i}">
+          <div class="history-item-header">
+            <span class="history-name">${escHtml(e.designName || 'Untitled')}</span>
+            <div class="history-meta">
+              <span class="ds-badge">${dsLabel(e.designSystem)}</span>
+              <span class="history-time">${timeAgo(e.timestamp)}</span>
+            </div>
+          </div>
+          <div class="history-prompt">${escHtml(e.prompt)}</div>
+          <div class="history-actions">
+            <button class="history-rerender" data-index="${i}">Re-render</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Store entries on window for click access
+      window._historyEntries = entries;
+
+      document.querySelectorAll('.history-rerender').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const idx = parseInt(btn.getAttribute('data-index'), 10);
+          const entry = window._historyEntries[idx];
+          if (!entry) return;
+
+          currentDesign = entry.design;
+          currentPrompt = entry.prompt;
+
+          // Switch back to main panel
+          showingHistory = false;
+          mainPanel.style.display = 'block';
+          historyPanel.style.display = 'none';
+          historyBtn.classList.remove('active');
+          historyBtn.textContent = 'History';
+
+          promptEl.value = entry.prompt;
+          designSysEl.value = entry.designSystem || 'material3';
+          refineSection.style.display = 'block';
+
+          showStatus('Re-rendering design from history...', 'loading');
+          parent.postMessage({ pluginMessage: { type: 'render-design', design: entry.design } }, '*');
+        });
+      });
+    }
+
+    clearHistBtn.addEventListener('click', () => {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-to-history',
+          entry: null,
+          _clear: true,
+        }
+      }, '*');
+      // Optimistic clear
+      renderHistoryList([]);
+    });
+
+    function dsLabel(system) {
+      const labels = { material3: 'MD3', ios: 'iOS', tailwind: 'Tailwind', minimal: 'Minimal' };
+      return labels[system] || system || 'MD3';
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const diff = Date.now() - ts;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.floor(hrs / 24)}d ago`;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

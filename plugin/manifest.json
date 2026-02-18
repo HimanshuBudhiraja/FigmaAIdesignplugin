@@ -1,0 +1,14 @@
+{
+  "name": "AI Design Generator",
+  "id": "ai-design-generator-plugin",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "src/ui.html",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["*"],
+    "reasoning": "Connects to a local proxy server to generate designs using the Claude AI API."
+  }
+}

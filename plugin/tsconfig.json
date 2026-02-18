@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "commonjs",
+    "lib": ["ES2015"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@figma"]
+  },
+  "include": ["src/code.ts", "src/renderer.ts", "src/colors.ts", "src/fonts.ts"]
+}
